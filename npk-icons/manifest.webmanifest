@@ -3,7 +3,7 @@
   "name": "NPK – Reinigungsplanung",
   "short_name": "NPK",
   "description": "Wochen- und Schichtplanung für die Reinigung",
-  "start_url": "../index.html",
+  "start_url": "../NPK.html",
   "scope": "../",
   "display": "standalone",
   "background_color": "#FFFFFF",
