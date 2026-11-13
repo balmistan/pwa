@@ -468,13 +468,20 @@
                 const thead = document.createElement("thead");
                 const headerRow = document.createElement("tr");
                 const shortDay = weekday.slice(0, 2);
+const headers = [
+                    { text: "Auftrag", colspan: 2 },
+                    { text: "Zeitfenster" },
+                    { text: shortDay },
+                    { text: "Zielbild" }
+                ];
+                /*
                 const headers = [
                     { text: "Auftrag", colspan: 2 },
                     { text: `Prüf Zeit_${shortDay}` },
                     { text: shortDay },
                     { text: "Kennwort" }
                 ];
-
+*/
                 for (const header of headers) {
                     const th = document.createElement("th");
                     if (header.colspan) th.colSpan = header.colspan;
@@ -609,18 +616,18 @@
                 const data = JSON.parse(text);
                 validateData(data);
 
-                // Prima visualizza i dati validati, poi li salva localmente.
+                // Zuerst werden die validierten Daten angezeigt und anschließend lokal gespeichert.
                 renderData(data);
                 try {
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
                 } catch (storageError) {
-                    alert("Die Daten wurden geladen, konnten aber nicht dauerhaft im Browser gespeichert werden. Prüfe den verfügbaren Speicher.");
+                    //alert("Die Daten wurden geladen, konnten aber nicht dauerhaft im Browser gespeichert werden. Prüfe den verfügbaren Speicher.");
                     return;
                 }
-                alert("JSON-Datei geladen und lokal im Browser gespeichert.");
+                //alert("JSON-Datei geladen und lokal im Browser gespeichert.");
             } catch (error) {
                 console.error("JSON-Import fehlgeschlagen:", error);
-                alert("Die Datei konnte nicht geladen werden. Prüfe, ob es eine gültige NPK-JSON-Datei ist.\n\n" + String(error.message ?? ""));
+                alert("Prüfe, ob es eine gültige NPK-JSON-Datei ist.\n\n" + String(error.message ?? ""));
             }
         }
 
