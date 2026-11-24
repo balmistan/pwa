@@ -524,7 +524,6 @@
       const MAX_JSON_SIZE = 2 * 1024 * 1024;
 
       let schichten = {};
-      let leistungszeiten = [];
       let montagtabelle = [];
       let dienstagtabelle = [];
       let mittwochtabelle = [];
@@ -553,9 +552,6 @@
       function validateData(data) {
         if (!isPlainObject(data)) {
           throw new Error("Die oberste JSON-Ebene muss ein Objekt sein.");
-        }
-        if (!Array.isArray(data.lz)) {
-          throw new Error('Im JSON fehlt das erforderliche Array "lz".');
         }
         if (!isPlainObject(data.schichten)) {
           throw new Error(
@@ -602,13 +598,6 @@
           }
         }
 
-        for (const item of data.lz) {
-          if (!isPlainObject(item) || item.id === undefined) {
-            throw new Error(
-              'Jeder Eintrag in "lz" benötigt mindestens eine "id".',
-            );
-          }
-        }
         for (const [code, info] of Object.entries(data.zielbild ?? {})) {
           if (!isPlainObject(info)) {
             throw new Error(
@@ -623,7 +612,6 @@
         const data = validateData(rawData);
 
         // Dati assegnati solo dopo la validazione.
-        leistungszeiten = data.lz;
         schichten = data.schichten;
         montagtabelle = data.montagtabelle;
         dienstagtabelle = data.dienstagtabelle ?? [];
@@ -746,12 +734,6 @@
 
               if (index === 2) {
                
-            
-            /*    const key = String(cell[0] ?? "");
-                const item = leistungszeiten.find(
-                  (entry) => String(entry.id) === key,
-                );
-*/
                 const intervalText = String(cell[0]);
                 const color = String(cell[1]);
                
