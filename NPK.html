@@ -653,7 +653,7 @@
           tableIndex++
         ) {
           const shiftLabel = document.createElement("span");
-          shiftLabel.textContent = String(shiftList[tableIndex] ?? "");
+         shiftLabel.textContent = String(dataContent?.[tableIndex]?.[0]?.[0] ?? "").substring(String(dataContent?.[tableIndex]?.[0]?.[0] ?? "").indexOf(":") + 1).trim();
 
           const wrapper = document.createElement("div");
           wrapper.className = "table-wrapper";
