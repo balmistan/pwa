@@ -1,476 +1,689 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
-<head>
+  <head>
     <!--
         Autor: Daniele San Giovanni
         Datum: April 2026
         Zweck: NPK-Wochenplan, digital umgesetzt.
     -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>NPK</title>
-    <meta name="application-name" content="NPK">
-    <meta name="theme-color" content="#24496B">
+    <meta name="application-name" content="NPK" />
+    <meta name="theme-color" content="#24496B" />
 
-    <link rel="manifest" href="npk-icons/manifest.webmanifest">
+    <!-- PWA -->
+    <link rel="manifest" href="npk-icons/manifest.webmanifest" />
 
-    <link rel="icon" type="image/png"
-          sizes="32x32"
-          href="npk-icons/favicon-32.png">
+    <!-- Icone -->
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="npk-icons/favicon-32.png"
+    />
 
-    <link rel="apple-touch-icon"
-          sizes="180x180"
-          href="npk-icons/apple-touch-icon.png">
-   
-    <meta name="apple-mobile-web-app-title" content="NPK">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="npk-icons/apple-touch-icon.png"
+    />
 
-    <meta name="mobile-web-app-capable" content="yes">
+    <!-- Compatibilità Apple -->
+    <meta name="apple-mobile-web-app-title" content="NPK" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <!-- Compatibilità mobile -->
+    <meta name="mobile-web-app-capable" content="yes" />
 
     <style>
-        :root {
-            --border: #d6d6d6;
-            --text: #1f2937;
-            --bg: #ffffff;
-            --head-bg: #ffffff;
+      :root {
+        --border: #d6d6d6;
+        --text: #1f2937;
+        --bg: #ffffff;
+        --head-bg: #ffffff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 58px;
+        background: #0f172a;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 0 12px;
+        z-index: 1000;
+      }
+      #info-header {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      #version,
+      #bahnhof-ort {
+        font-weight: bold;
+        font-size: 0.8em;
+        margin-right: 5px;
+        color: #ddd;
+        overflow-wrap: anywhere;
+      }
+      #menuBtn {
+        color: white;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 8px;
+      }
+      .dropdown {
+        position: absolute;
+        right: 52px;
+        top: 58px;
+        background: #fff;
+        color: #000;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        display: none;
+        box-shadow: 0 2px 8px #0003;
+        z-index: 1001;
+      }
+      .dropdown.show {
+        display: block;
+      }
+      .day {
+        padding: 10px 14px;
+        cursor: pointer;
+      }
+      .day:hover {
+        background: #eee;
+      }
+      .options-menu-container {
+        position: relative;
+      }
+      #optionsMenuButton {
+        color: white;
+        font-size: 32px;
+        background: transparent;
+        border: none;
+        padding: 0 8px;
+        min-width: 40px;
+        min-height: 44px;
+        cursor: pointer;
+      }
+      #optionsDropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        min-width: 160px;
+        box-shadow: 0 2px 8px #0003;
+        z-index: 1001;
+      }
+      #optionsDropdown button {
+        width: 100%;
+        padding: 12px;
+        color: black;
+        background: white;
+        border: none;
+        text-align: left;
+        cursor: pointer;
+      }
+      .lock-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        padding: 4px;
+      }
+      .lock-btn svg {
+        width: 30px;
+        height: 30px;
+      }
+      .icon-locked {
+        display: none;
+      }
+      body.locked .icon-locked {
+        display: inline;
+      }
+      body.locked .icon-unlocked {
+        display: none;
+      }
+      body.locked {
+        overflow: hidden;
+        height: 95vh;
+      }
+      #scroll-area {
+        overflow-y: auto;
+        height: calc(100vh - 58px);
+        margin-top: 58px;
+      }
+      #scroll-area.locked {
+        overflow: hidden;
+      }
+      .wday {
+        display: none;
+        padding: 3px;
+        margin-top: 8px;
+        border: none;
+      }
+      .wday.show {
+        display: block;
+      }
+      .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        margin-top: 15px;
+        margin-bottom: 30px;
+      }
+      .db-plan {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid var(--border);
+        table-layout: auto;
+      }
+      .db-plan th {
+        background: var(--head-bg);
+        border: 3px solid var(--border);
+        font-weight: 500;
+        white-space: normal;
+      }
+      .db-plan th span {
+        display: inline-block;
+        transform: rotate(180deg);
+        background-color: transparent;
+        text-align: left;
+        vertical-align: bottom;
+        writing-mode: vertical-rl;
+      }
+      .db-plan th:first-child span {
+        transform: rotate(-90deg);
+      }
+      .db-plan td {
+        padding: 5px 2px;
+        border: 1px solid var(--border);
+        text-align: left;
+        white-space: normal;
+        overflow-wrap: break-word;
+        max-width: 150px;
+      }
+      .db-plan td:nth-child(3),
+      .db-plan td:nth-child(4),
+      .db-plan td:nth-child(5) {
+        text-align: center;
+      }
+      .db-plan tr {
+        min-height: 2rem;
+      }
+      td[data-code] {
+        color: #000;
+        font-weight: 700;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 12px;
+        max-width: 90%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        position: relative;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      .close-btn {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: #ff5c5c;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        font-size: 18px;
+        cursor: pointer;
+      }
+      #modalText .code-title {
+        font-weight: 700;
+        font-size: 1.1em;
+        margin-bottom: 8px;
+      }
+      #modalText .beschreibung-title {
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      #modalText p {
+        margin: 8px 0;
+        line-height: 1.4;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
         }
-        * { box-sizing: border-box; }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @media (max-width: 768px) {
+        .db-plan th,
+        .db-plan td {
+          font-size: 13px;
+          padding: 0.1rem;
+        }
+      }
+      @media print {
+        @page {
+          size: A4 portrait;
+        }
+        * {
+          overflow: visible !important;
+        }
+        html,
         body {
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
+          width: auto;
+          height: auto;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: none !important;
+          color: #000;
+          font-family: Arial, sans-serif;
+          line-height: 1.1;
+          -webkit-print-color-adjust: exact;
+        }
+        .notprintable,
+        .noprintable,
+        #optionsDropdown,
+        #dayMenu {
+          display: none !important;
+        }
+        .printable {
+          display: block !important;
+          font-size: 0.8em !important;
+          color: black;
+        }
+        .table-wrapper {
+          break-after: page;
+          page-break-after: always;
+        }
+        .table-wrapper:last-child {
+          break-after: auto;
+          page-break-after: auto;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          page-break-inside: auto;
+          border: none !important;
+          word-break: break-word;
+          overflow-wrap: break-word;
+          margin: 0 !important;
+        }
+        thead {
+          display: table-header-group;
+          position: relative;
+        }
+        thead::before {
+          content: "";
+          display: block;
+          height: 10mm;
+          background: white;
+          border: none !important;
+          margin: 0;
+          padding: 0;
+        }
+        tfoot {
+          display: table-footer-group;
+        }
+        tr {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+        td,
+        th {
+          font-size: 0.7em !important;
         }
         .nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 58px;
-            background: #0f172a;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            padding: 0 12px;
-            z-index: 1000;
+          background-color: transparent !important;
+          padding-bottom: 0 !important;
         }
-        #info-header { display: flex; flex-direction: column; min-width: 0; }
-        #version, #bahnhof-ort {
-            font-weight: bold;
-            font-size: .8em;
-            margin-right: 5px;
-            color: #ddd;
-            overflow-wrap: anywhere;
+        .wday {
+          margin-top: 10px !important;
         }
-        #menuBtn {
-            color: white;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            padding: 8px;
+        #scroll-area {
+          height: auto;
+          margin-top: 0;
+          overflow: visible;
         }
-        .dropdown {
-            position: absolute;
-            right: 52px;
-            top: 58px;
-            background: #fff;
-            color: #000;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            display: none;
-            box-shadow: 0 2px 8px #0003;
-            z-index: 1001;
-        }
-        .dropdown.show { display: block; }
-        .day { padding: 10px 14px; cursor: pointer; }
-        .day:hover { background: #eee; }
-        .options-menu-container { position: relative; }
-        #optionsMenuButton {
-            color: white;
-            font-size: 32px;
-            background: transparent;
-            border: none;
-            padding: 0 8px;
-            min-width: 40px;
-            min-height: 44px;
-            cursor: pointer;
-        }
-        #optionsDropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            min-width: 160px;
-            box-shadow: 0 2px 8px #0003;
-            z-index: 1001;
-        }
-        #optionsDropdown button {
-            width: 100%;
-            padding: 12px;
-            color: black;
-            background: white;
-            border: none;
-            text-align: left;
-            cursor: pointer;
-        }
-        .lock-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            padding: 4px;
-        }
-        .lock-btn svg { width: 30px; height: 30px; }
-        .icon-locked { display: none; }
-        body.locked .icon-locked { display: inline; }
-        body.locked .icon-unlocked { display: none; }
-        body.locked { overflow: hidden; height: 95vh; }
-        #scroll-area { overflow-y: auto; height: calc(100vh - 58px); margin-top: 58px; }
-        #scroll-area.locked { overflow: hidden; }
-        .wday { display: none; padding: 3px; margin-top: 8px; border: none; }
-        .wday.show { display: block; }
-        .table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            margin-top: 15px;
-            margin-bottom: 30px;
-        }
-        .db-plan {
-            width: 100%;
-            border-collapse: collapse;
-            border: 1px solid var(--border);
-            table-layout: auto;
-        }
-        .db-plan th {
-            background: var(--head-bg);
-            border: 3px solid var(--border);
-            font-weight: 500;
-            white-space: normal;
-        }
-        .db-plan th span {
-            display: inline-block;
-            transform: rotate(180deg);
-            background-color: transparent;
-            text-align: left;
-            vertical-align: bottom;
-            writing-mode: vertical-rl;
-        }
-        .db-plan th:first-child span { transform: rotate(-90deg); }
-        .db-plan td {
-            padding: 5px 2px;
-            border: 1px solid var(--border);
-            text-align: left;
-            white-space: normal;
-            overflow-wrap: break-word;
-            max-width: 150px;
-        }
-        .db-plan td:nth-child(3),
-        .db-plan td:nth-child(4),
-        .db-plan td:nth-child(5) { text-align: center; }
-        .db-plan tr { min-height: 2rem; }
-        td[data-code] { color: #000; font-weight: 700; }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
-            background-color: rgba(0,0,0,.5);
-        }
-        .modal-content {
-            background-color: #fff;
-            margin: 10% auto;
-            padding: 20px;
-            border-radius: 12px;
-            max-width: 90%;
-            box-shadow: 0 4px 12px rgba(0,0,0,.3);
-            position: relative;
-            animation: fadeIn .3s ease-in-out;
-        }
-        .close-btn {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background: #ff5c5c;
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        #modalText .code-title { font-weight: 700; font-size: 1.1em; margin-bottom: 8px; }
-        #modalText .beschreibung-title { font-weight: 700; margin-bottom: 8px; }
-        #modalText p { margin: 8px 0; line-height: 1.4; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @media (max-width: 768px) {
-            .db-plan th, .db-plan td { font-size: 13px; padding: .1rem; }
-        }
-        @media print {
-            @page { size: A4 portrait; }
-            * { overflow: visible !important; }
-            html, body {
-                width: auto; height: auto; margin: 0 !important; padding: 0 !important;
-                background: none !important; color: #000; font-family: Arial, sans-serif;
-                line-height: 1.1; -webkit-print-color-adjust: exact;
-            }
-            .notprintable, .noprintable, #optionsDropdown, #dayMenu { display: none !important; }
-            .printable { display: block !important; font-size: .8em !important; color: black; }
-            .table-wrapper { break-after: page; page-break-after: always; }
-            .table-wrapper:last-child { break-after: auto; page-break-after: auto; }
-            table {
-                width: 100%; border-collapse: collapse; page-break-inside: auto;
-                border: none !important; word-break: break-word; overflow-wrap: break-word;
-                margin: 0 !important;
-            }
-            thead { display: table-header-group; position: relative; }
-            thead::before {
-                content: ""; display: block; height: 10mm; background: white;
-                border: none !important; margin: 0; padding: 0;
-            }
-            tfoot { display: table-footer-group; }
-            tr { page-break-inside: avoid; break-inside: avoid; }
-            td, th { font-size: .7em !important; }
-            .nav { background-color: transparent !important; padding-bottom: 0 !important; }
-            .wday { margin-top: 10px !important; }
-            #scroll-area { height: auto; margin-top: 0; overflow: visible; }
-        }
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <noscript>
-        <div style="padding:20px;font-family:system-ui,sans-serif">
-            Bitte JavaScript aktivieren, um den NPK-Wochenplan zu verwenden.
-        </div>
+      <div style="padding: 20px; font-family: system-ui, sans-serif">
+        Bitte JavaScript aktivieren, um den NPK-Wochenplan zu verwenden.
+      </div>
     </noscript>
 
     <nav class="nav">
-        <span class="noprintable">
-            <button id="lockBtn" class="lock-btn notprintable" aria-label="Scroll sperren oder freigeben">
-                <svg class="icon-unlocked" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="5" y="11" width="14" height="9" rx="2" ry="2"/>
-                    <circle cx="12" cy="15.5" r="1.3"/>
-                    <path d="M19 7a4 4 0 0 0-4-4h-1"/>
-                    <path d="M19 11V7"/>
-                </svg>
-                <svg class="icon-locked" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M8 11V8a4 4 0 0 1 8 0v3"/>
-                    <rect x="5" y="11" width="14" height="9" rx="2" ry="2"/>
-                    <circle cx="12" cy="15.5" r="1.3"/>
-                </svg>
-            </button>
-        </span>
+      <span class="noprintable">
+        <button
+          id="lockBtn"
+          class="lock-btn notprintable"
+          aria-label="Scroll sperren oder freigeben"
+        >
+          <svg
+            class="icon-unlocked"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="5" y="11" width="14" height="9" rx="2" ry="2" />
+            <circle cx="12" cy="15.5" r="1.3" />
+            <path d="M19 7a4 4 0 0 0-4-4h-1" />
+            <path d="M19 11V7" />
+          </svg>
+          <svg
+            class="icon-locked"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+            <rect x="5" y="11" width="14" height="9" rx="2" ry="2" />
+            <circle cx="12" cy="15.5" r="1.3" />
+          </svg>
+        </button>
+      </span>
 
-        <div id="info-header">
-            <span id="bahnhof-ort" class="printable"></span>
-            <span id="version"></span>
-        </div>
+      <div id="info-header">
+        <span id="bahnhof-ort" class="printable"></span>
+        <span id="version"></span>
+      </div>
 
-        <button id="menuBtn" class="printable" type="button">WT ▼</button>
-        <div id="dayMenu" class="dropdown notprintable">
-            <div class="day" data-day="Montag" data-id="montag-id">Montag</div>
-            <div class="day" data-day="Dienstag" data-id="dienstag-id">Dienstag</div>
-            <div class="day" data-day="Mittwoch" data-id="mittwoch-id">Mittwoch</div>
-            <div class="day" data-day="Donnerstag" data-id="donnerstag-id">Donnerstag</div>
-            <div class="day" data-day="Freitag" data-id="freitag-id">Freitag</div>
-            <div class="day" data-day="Samstag" data-id="samstag-id">Samstag</div>
-            <div class="day" data-day="Sonntag" data-id="sonntag-id">Sonntag</div>
+      <button id="menuBtn" class="printable" type="button">WT ▼</button>
+      <div id="dayMenu" class="dropdown notprintable">
+        <div class="day" data-day="Montag" data-id="montag-id">Montag</div>
+        <div class="day" data-day="Dienstag" data-id="dienstag-id">
+          Dienstag
         </div>
+        <div class="day" data-day="Mittwoch" data-id="mittwoch-id">
+          Mittwoch
+        </div>
+        <div class="day" data-day="Donnerstag" data-id="donnerstag-id">
+          Donnerstag
+        </div>
+        <div class="day" data-day="Freitag" data-id="freitag-id">Freitag</div>
+        <div class="day" data-day="Samstag" data-id="samstag-id">Samstag</div>
+        <div class="day" data-day="Sonntag" data-id="sonntag-id">Sonntag</div>
+      </div>
 
-        <div class="options-menu-container">
-            <button id="optionsMenuButton" type="button" aria-label="Weitere Optionen" aria-expanded="false">⋮</button>
-            <div id="optionsDropdown" hidden>
-                <button type="button" id="openJsonButton">Datei öffnen</button>
-            </div>
-            <input type="file" id="dateiAuswahl" accept=".json,application/json" hidden>
+      <div class="options-menu-container">
+        <button
+          id="optionsMenuButton"
+          type="button"
+          aria-label="Weitere Optionen"
+          aria-expanded="false"
+        >
+          ⋮
+        </button>
+        <div id="optionsDropdown" hidden>
+          <button type="button" id="openJsonButton">Datei öffnen</button>
         </div>
+        <input
+          type="file"
+          id="dateiAuswahl"
+          accept=".json,application/json"
+          hidden
+        />
+      </div>
     </nav>
 
     <div id="scroll-area">
-        <div id="montag-id" class="wday"></div>
-        <div id="dienstag-id" class="wday"></div>
-        <div id="mittwoch-id" class="wday"></div>
-        <div id="donnerstag-id" class="wday"></div>
-        <div id="freitag-id" class="wday"></div>
-        <div id="samstag-id" class="wday"></div>
-        <div id="sonntag-id" class="wday"></div>
+      <div id="montag-id" class="wday"></div>
+      <div id="dienstag-id" class="wday"></div>
+      <div id="mittwoch-id" class="wday"></div>
+      <div id="donnerstag-id" class="wday"></div>
+      <div id="freitag-id" class="wday"></div>
+      <div id="samstag-id" class="wday"></div>
+      <div id="sonntag-id" class="wday"></div>
     </div>
 
-    <div id="codeModal" class="modal" role="dialog" aria-modal="true" aria-label="Zielbild">
-        <div class="modal-content">
-            <button class="close-btn" id="closeModal" type="button" aria-label="Schließen">&times;</button>
-            <div id="modalText"></div>
-        </div>
+    <div
+      id="codeModal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Zielbild"
+    >
+      <div class="modal-content">
+        <button
+          class="close-btn"
+          id="closeModal"
+          type="button"
+          aria-label="Schließen"
+        >
+          &times;
+        </button>
+        <div id="modalText"></div>
+      </div>
     </div>
 
     <script>
-        "use strict";
+      "use strict";
 
-        const days = [
-            { name: "Sonntag", id: "sonntag-id" },
-            { name: "Montag", id: "montag-id" },
-            { name: "Dienstag", id: "dienstag-id" },
-            { name: "Mittwoch", id: "mittwoch-id" },
-            { name: "Donnerstag", id: "donnerstag-id" },
-            { name: "Freitag", id: "freitag-id" },
-            { name: "Samstag", id: "samstag-id" }
-        ];
+      const days = [
+        { name: "Sonntag", id: "sonntag-id" },
+        { name: "Montag", id: "montag-id" },
+        { name: "Dienstag", id: "dienstag-id" },
+        { name: "Mittwoch", id: "mittwoch-id" },
+        { name: "Donnerstag", id: "donnerstag-id" },
+        { name: "Freitag", id: "freitag-id" },
+        { name: "Samstag", id: "samstag-id" },
+      ];
 
-        const STORAGE_KEY = "npkDatenV1";
-        const DAY_STORAGE_KEY = "selectedDay";
-        const MAX_JSON_SIZE = 2 * 1024 * 1024;
+      const STORAGE_KEY = "npkDatenV1";
+      const DAY_STORAGE_KEY = "selectedDay";
+      const MAX_JSON_SIZE = 2 * 1024 * 1024;
 
-        let schichten = {};
-        let leistungszeiten = [];
-        let montagtabelle = [];
-        let dienstagtabelle = [];
-        let mittwochtabelle = [];
-        let donnerstagtabelle = [];
-        let freitagtabelle = [];
-        let samstagtabelle = [];
-        let sonntagtabelle = [];
-        let zielbild = new Map();
+      let schichten = {};
+      let leistungszeiten = [];
+      let montagtabelle = [];
+      let dienstagtabelle = [];
+      let mittwochtabelle = [];
+      let donnerstagtabelle = [];
+      let freitagtabelle = [];
+      let samstagtabelle = [];
+      let sonntagtabelle = [];
+      let zielbild = new Map();
 
-        const dayTables = [
-            ["Montag", "montag-id", "montagtabelle"],
-            ["Dienstag", "dienstag-id", "dienstagtabelle"],
-            ["Mittwoch", "mittwoch-id", "mittwochtabelle"],
-            ["Donnerstag", "donnerstag-id", "donnerstagtabelle"],
-            ["Freitag", "freitag-id", "freitagtabelle"],
-            ["Samstag", "samstag-id", "samstagtabelle"],
-            ["Sonntag", "sonntag-id", "sonntagtabelle"]
-        ];
+      const dayTables = [
+        ["Montag", "montag-id", "montagtabelle"],
+        ["Dienstag", "dienstag-id", "dienstagtabelle"],
+        ["Mittwoch", "mittwoch-id", "mittwochtabelle"],
+        ["Donnerstag", "donnerstag-id", "donnerstagtabelle"],
+        ["Freitag", "freitag-id", "freitagtabelle"],
+        ["Samstag", "samstag-id", "samstagtabelle"],
+        ["Sonntag", "sonntag-id", "sonntagtabelle"],
+      ];
 
-        function isPlainObject(value) {
-            return value !== null && typeof value === "object" && !Array.isArray(value);
+      function isPlainObject(value) {
+        return (
+          value !== null && typeof value === "object" && !Array.isArray(value)
+        );
+      }
+
+      function validateData(data) {
+        if (!isPlainObject(data)) {
+          throw new Error("Die oberste JSON-Ebene muss ein Objekt sein.");
+        }
+        if (!Array.isArray(data.lz)) {
+          throw new Error('Im JSON fehlt das erforderliche Array "lz".');
+        }
+        if (!isPlainObject(data.schichten)) {
+          throw new Error(
+            'Im JSON fehlt das erforderliche Objekt "schichten".',
+          );
+        }
+        if (!Array.isArray(data.montagtabelle)) {
+          throw new Error(
+            'Im JSON fehlt das erforderliche Array "montagtabelle".',
+          );
+        }
+        if (data.zielbild !== undefined && !isPlainObject(data.zielbild)) {
+          throw new Error('"zielbild" muss ein JSON-Objekt sein.');
         }
 
-        function validateData(data) {
-            if (!isPlainObject(data)) {
-                throw new Error("Die oberste JSON-Ebene muss ein Objekt sein.");
+        for (const [dayName, , property] of dayTables) {
+          const tables = data[property] ?? [];
+          if (!Array.isArray(tables)) {
+            throw new Error(`"${property}" muss ein Array sein.`);
+          }
+          if (tables.length && !Array.isArray(data.schichten[dayName])) {
+            throw new Error(
+              `Für ${dayName} fehlt das Schichten-Array in "schichten".`,
+            );
+          }
+          for (const table of tables) {
+            if (!Array.isArray(table)) {
+              throw new Error(`Eine Tabelle in "${property}" ist kein Array.`);
             }
-            if (!Array.isArray(data.lz)) {
-                throw new Error('Im JSON fehlt das erforderliche Array "lz".');
+            for (const row of table) {
+              if (!Array.isArray(row)) {
+                throw new Error(`Eine Zeile in "${property}" ist kein Array.`);
+              }
+              if (
+                row.length &&
+                typeof row[0] !== "string" &&
+                typeof row[0] !== "number"
+              ) {
+                throw new Error(
+                  `Eine Zelle in "${property}" hat ein ungültiges Format.`,
+                );
+              }
             }
-            if (!isPlainObject(data.schichten)) {
-                throw new Error('Im JSON fehlt das erforderliche Objekt "schichten".');
-            }
-            if (!Array.isArray(data.montagtabelle)) {
-                throw new Error('Im JSON fehlt das erforderliche Array "montagtabelle".');
-            }
-            if (data.zielbild !== undefined && !isPlainObject(data.zielbild)) {
-                throw new Error('"zielbild" muss ein JSON-Objekt sein.');
-            }
-
-            for (const [dayName, , property] of dayTables) {
-                const tables = data[property] ?? [];
-                if (!Array.isArray(tables)) {
-                    throw new Error(`"${property}" muss ein Array sein.`);
-                }
-                if (tables.length && !Array.isArray(data.schichten[dayName])) {
-                    throw new Error(`Für ${dayName} fehlt das Schichten-Array in "schichten".`);
-                }
-                for (const table of tables) {
-                    if (!Array.isArray(table)) {
-                        throw new Error(`Eine Tabelle in "${property}" ist kein Array.`);
-                    }
-                    for (const row of table) {
-                        if (!Array.isArray(row)) {
-                            throw new Error(`Eine Zeile in "${property}" ist kein Array.`);
-                        }
-                        if (row.length && typeof row[0] !== "string" && typeof row[0] !== "number") {
-                            throw new Error(`Eine Zelle in "${property}" hat ein ungültiges Format.`);
-                        }
-                    }
-                }
-            }
-
-            for (const item of data.lz) {
-                if (!isPlainObject(item) || item.id === undefined) {
-                    throw new Error('Jeder Eintrag in "lz" benötigt mindestens eine "id".');
-                }
-            }
-            for (const [code, info] of Object.entries(data.zielbild ?? {})) {
-                if (!isPlainObject(info)) {
-                    throw new Error(`Der Zielbild-Eintrag "${code}" muss ein Objekt sein.`);
-                }
-            }
-            return data;
+          }
         }
 
-        function renderData(rawData) {
-            const data = validateData(rawData);
+        for (const item of data.lz) {
+          if (!isPlainObject(item) || item.id === undefined) {
+            throw new Error(
+              'Jeder Eintrag in "lz" benötigt mindestens eine "id".',
+            );
+          }
+        }
+        for (const [code, info] of Object.entries(data.zielbild ?? {})) {
+          if (!isPlainObject(info)) {
+            throw new Error(
+              `Der Zielbild-Eintrag "${code}" muss ein Objekt sein.`,
+            );
+          }
+        }
+        return data;
+      }
 
-            // Dati assegnati solo dopo la validazione.
-            leistungszeiten = data.lz;
-            schichten = data.schichten;
-            montagtabelle = data.montagtabelle;
-            dienstagtabelle = data.dienstagtabelle ?? [];
-            mittwochtabelle = data.mittwochtabelle ?? [];
-            donnerstagtabelle = data.donnerstagtabelle ?? [];
-            freitagtabelle = data.freitagtabelle ?? [];
-            samstagtabelle = data.samstagtabelle ?? [];
-            sonntagtabelle = data.sonntagtabelle ?? [];
-            zielbild = new Map(Object.entries(data.zielbild ?? {}));
+      function renderData(rawData) {
+        const data = validateData(rawData);
 
-            // Rimuove le tabelle precedenti prima di ridisegnarle.
-            for (const [, id] of dayTables) {
-                document.getElementById(id).replaceChildren();
-            }
+        // Dati assegnati solo dopo la validazione.
+        leistungszeiten = data.lz;
+        schichten = data.schichten;
+        montagtabelle = data.montagtabelle;
+        dienstagtabelle = data.dienstagtabelle ?? [];
+        mittwochtabelle = data.mittwochtabelle ?? [];
+        donnerstagtabelle = data.donnerstagtabelle ?? [];
+        freitagtabelle = data.freitagtabelle ?? [];
+        samstagtabelle = data.samstagtabelle ?? [];
+        sonntagtabelle = data.sonntagtabelle ?? [];
+        zielbild = new Map(Object.entries(data.zielbild ?? {}));
 
-            createTable(montagtabelle, "Montag", "montag-id");
-            createTable(dienstagtabelle, "Dienstag", "dienstag-id");
-            createTable(mittwochtabelle, "Mittwoch", "mittwoch-id");
-            createTable(donnerstagtabelle, "Donnerstag", "donnerstag-id");
-            createTable(freitagtabelle, "Freitag", "freitag-id");
-            createTable(samstagtabelle, "Samstag", "samstag-id");
-            createTable(sonntagtabelle, "Sonntag", "sonntag-id");
-
-            document.getElementById("bahnhof-ort").textContent = String(data.bahnhof_ort ?? "");
-            document.getElementById("version").textContent = String(data.version ?? "");
+        // Rimuove le tabelle precedenti prima di ridisegnarle.
+        for (const [, id] of dayTables) {
+          document.getElementById(id).replaceChildren();
         }
 
-        function createTable(dataContent, weekday, weekdayId) {
-            const shiftList = schichten?.[weekday] ?? [];
-            if (!Array.isArray(dataContent)) return;
+        createTable(montagtabelle, "Montag", "montag-id");
+        createTable(dienstagtabelle, "Dienstag", "dienstag-id");
+        createTable(mittwochtabelle, "Mittwoch", "mittwoch-id");
+        createTable(donnerstagtabelle, "Donnerstag", "donnerstag-id");
+        createTable(freitagtabelle, "Freitag", "freitag-id");
+        createTable(samstagtabelle, "Samstag", "samstag-id");
+        createTable(sonntagtabelle, "Sonntag", "sonntag-id");
 
-            for (let tableIndex = 0; tableIndex < dataContent.length; tableIndex++) {
-                const shiftLabel = document.createElement("span");
-                shiftLabel.textContent = String(shiftList[tableIndex] ?? "");
+        document.getElementById("bahnhof-ort").textContent = String(
+          data.bahnhof_ort ?? "",
+        );
+        document.getElementById("version").textContent = String(
+          data.version ?? "",
+        );
+      }
 
-                const wrapper = document.createElement("div");
-                wrapper.className = "table-wrapper";
-                wrapper.appendChild(shiftLabel);
+      function createTable(dataContent, weekday, weekdayId) {
+        const shiftList = schichten?.[weekday] ?? [];
+        if (!Array.isArray(dataContent)) return;
 
-                const table = document.createElement("table");
-                table.className = "db-plan";
+        for (
+          let tableIndex = 0;
+          tableIndex < dataContent.length;
+          tableIndex++
+        ) {
+          const shiftLabel = document.createElement("span");
+          shiftLabel.textContent = String(shiftList[tableIndex] ?? "");
 
-                const thead = document.createElement("thead");
-                const headerRow = document.createElement("tr");
-                const shortDay = weekday.slice(0, 2);
-const headers = [
-                    { text: "Auftrag", colspan: 2 },
-                    { text: "Zeitfenster" },
-                    { text: shortDay },
-                    { text: "Zielbild" }
-                ];
-                /*
+          const wrapper = document.createElement("div");
+          wrapper.className = "table-wrapper";
+          wrapper.appendChild(shiftLabel);
+
+          const table = document.createElement("table");
+          table.className = "db-plan";
+
+          const thead = document.createElement("thead");
+          const headerRow = document.createElement("tr");
+          const shortDay = weekday.slice(0, 2);
+          const headers = [
+            { text: "Auftrag", colspan: 2 },
+            { text: "Zeitfenster" },
+            { text: shortDay },
+            { text: "Zielbild" },
+          ];
+          /*
                 const headers = [
                     { text: "Auftrag", colspan: 2 },
                     { text: `Prüf Zeit_${shortDay}` },
@@ -478,247 +691,313 @@ const headers = [
                     { text: "Kennwort" }
                 ];
 */
-                for (const header of headers) {
-                    const th = document.createElement("th");
-                    if (header.colspan) th.colSpan = header.colspan;
-                    const span = document.createElement("span");
-                    span.textContent = header.text;
-                    th.appendChild(span);
-                    headerRow.appendChild(th);
+          for (const header of headers) {
+            const th = document.createElement("th");
+            if (header.colspan) th.colSpan = header.colspan;
+            const span = document.createElement("span");
+            span.textContent = header.text;
+            th.appendChild(span);
+            headerRow.appendChild(th);
+          }
+          thead.appendChild(headerRow);
+          table.appendChild(thead);
+
+          const tbody = document.createElement("tbody");
+          table.appendChild(tbody);
+          wrapper.appendChild(table);
+          document.getElementById(weekdayId).appendChild(wrapper);
+
+          const tableData = dataContent[tableIndex];
+          let rowCountDown = 0;
+
+          for (const row of tableData) {
+            if (rowCountDown > 0) rowCountDown--;
+
+            const tr = document.createElement("tr");
+
+            row.forEach((cell, index) => {
+              if (index === 0) {
+                const firstCell = String(cell ?? "");
+                const [firstText, rowSpanText = "1"] = firstCell.split("*");
+                const rowSpan = Number.parseInt(rowSpanText, 10);
+
+                if (
+                  Number.isInteger(rowSpan) &&
+                  rowSpan > 1 &&
+                  rowSpan <= 100
+                ) {
+                  const td0 = document.createElement("td");
+                  td0.rowSpan = rowSpan;
+                  td0.textContent = firstText;
+                  rowCountDown = rowSpan;
+                  tr.appendChild(td0);
+                } else if (
+                  rowSpanText !== "1" &&
+                  rowSpanText !== "" &&
+                  !Number.isInteger(rowSpan)
+                ) {
+                  throw new Error(`Ungültiger Zeilenabstand in ${weekday}.`);
                 }
-                thead.appendChild(headerRow);
-                table.appendChild(thead);
-
-                const tbody = document.createElement("tbody");
-                table.appendChild(tbody);
-                wrapper.appendChild(table);
-                document.getElementById(weekdayId).appendChild(wrapper);
-
-                const tableData = dataContent[tableIndex];
-                let rowCountDown = 0;
-
-                for (const row of tableData) {
-                    if (rowCountDown > 0) rowCountDown--;
-
-                    const tr = document.createElement("tr");
-
-                    row.forEach((cell, index) => {
-                        if (index === 0) {
-                            const firstCell = String(cell ?? "");
-                            const [firstText, rowSpanText = "1"] = firstCell.split("*");
-                            const rowSpan = Number.parseInt(rowSpanText, 10);
-
-                            if (Number.isInteger(rowSpan) && rowSpan > 1 && rowSpan <= 100) {
-                                const td0 = document.createElement("td");
-                                td0.rowSpan = rowSpan;
-                                td0.textContent = firstText;
-                                rowCountDown = rowSpan;
-                                tr.appendChild(td0);
-                            } else if (rowSpanText !== "1" && rowSpanText !== "" && !Number.isInteger(rowSpan)) {
-                                throw new Error(`Ungültiger Zeilenabstand in ${weekday}.`);
-                            }
-                            return;
-                        }
-
-                        const td = document.createElement("td");
-                        if (index === 1 && rowCountDown === 0) td.colSpan = 2;
-
-                        if (index === 2 && Array.isArray(cell)) {
-                            const key = String(cell[0] ?? "");
-                            const item = leistungszeiten.find(entry => String(entry.id) === key);
-                            const intervalText = String(item?.text ?? "");
-                            const color = String(item?.farbe ?? "black");
-                            const allowedColors = ["green", "blue", "orange", "violet", "black"];
-
-                            // Testo normale: non interpretare il JSON come HTML.
-                            const match = intervalText.match(/^([\s\S]*?)([-–])([\s\S]*)$/);
-                            if (match) {
-                                td.appendChild(document.createTextNode(match[1]));
-                                td.appendChild(document.createElement("br"));
-                                td.appendChild(document.createTextNode(match[3]));
-                            } else {
-                                td.textContent = intervalText;
-                            }
-                            td.style.color = allowedColors.includes(color) ? color : "black";
-                            td.style.textAlign = "center";
-                        } else {
-                            td.textContent = cell === null || cell === undefined
-                                ? ""
-                                : (typeof cell === "object" ? JSON.stringify(cell) : String(cell));
-
-                            if (index === 4) {
-                                td.dataset.code = String(cell ?? "");
-                                td.style.color = "blue";
-                                td.style.textDecoration = "underline";
-                                td.style.cursor = "pointer";
-                            }
-                        }
-                        tr.appendChild(td);
-                    });
-                    tbody.appendChild(tr);
-                }
-            }
-        }
-
-        function showDay(id, name) {
-            const validDay = days.find(day => day.id === id && day.name === name);
-            if (!validDay) return;
-
-            document.querySelectorAll(".wday").forEach(div => div.classList.remove("show"));
-            const target = document.getElementById(validDay.id);
-            if (target) target.classList.add("show");
-
-            document.getElementById("menuBtn").textContent = `${validDay.name} ▼`;
-            try {
-                localStorage.setItem(DAY_STORAGE_KEY, JSON.stringify({
-                    id: validDay.id,
-                    name: validDay.name
-                }));
-            } catch (error) {
-                // La visualizzazione del giorno funziona anche se lo storage è disabilitato.
-            }
-            document.getElementById("dayMenu").classList.remove("show");
-        }
-
-        function addModalParagraph(container, text, className) {
-            const p = document.createElement("p");
-            if (className) p.className = className;
-            p.textContent = String(text ?? "");
-            container.appendChild(p);
-        }
-
-        function showTargetInfo(code) {
-            const info = zielbild.get(code);
-            if (!info) return;
-
-            const modalText = document.getElementById("modalText");
-            modalText.replaceChildren();
-            addModalParagraph(modalText, `(${code}) ${info.be1}`, "code-title");
-            addModalParagraph(modalText, info.be2, "beschreibung-title");
-            addModalParagraph(modalText, info.be3, "");
-            addModalParagraph(modalText, info.be4, "beschreibung-title");
-            document.getElementById("codeModal").style.display = "block";
-        }
-
-        async function importJsonFile(file) {
-            if (!file) return;
-            if (file.size > MAX_JSON_SIZE) {
-                alert("Die JSON-Datei ist zu groß. Erlaubt sind maximal 2 MB.");
                 return;
-            }
+              }
 
-            try {
-                const text = await file.text();
-                const data = JSON.parse(text);
-                validateData(data);
+              const td = document.createElement("td");
+              if (index === 1 && rowCountDown === 0) td.colSpan = 2;
 
-                // Zuerst werden die validierten Daten angezeigt und anschließend lokal gespeichert.
-                renderData(data);
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                } catch (storageError) {
-                    //alert("Die Daten wurden geladen, konnten aber nicht dauerhaft im Browser gespeichert werden. Prüfe den verfügbaren Speicher.");
-                    return;
+              if (index === 2) {
+               
+            
+            /*    const key = String(cell[0] ?? "");
+                const item = leistungszeiten.find(
+                  (entry) => String(entry.id) === key,
+                );
+*/
+                const intervalText = String(cell[0]);
+                const color = String(cell[1]);
+               
+                const allowedColors = [
+                  "green",
+                  "blue",
+                  "orange",
+                  "violet",
+                  "black",
+                ];
+
+                // Testo normale: non interpretare il JSON come HTML.
+                const match = intervalText.match(/^([\s\S]*?)([-–])([\s\S]*)$/);
+                if (match) {
+                  td.appendChild(document.createTextNode(match[1]));
+                  td.appendChild(document.createElement("br"));
+                  td.appendChild(document.createTextNode(match[3]));
+                } else {
+                  td.textContent = intervalText;
                 }
-                //alert("JSON-Datei geladen und lokal im Browser gespeichert.");
-            } catch (error) {
-                console.error("JSON-Import fehlgeschlagen:", error);
-                alert("Prüfe, ob es eine gültige NPK-JSON-Datei ist.\n\n" + String(error.message ?? ""));
-            }
+                td.style.color = allowedColors.includes(color)
+                  ? color
+                  : "black";
+                td.style.textAlign = "center";
+              } else {
+                td.textContent =
+                  cell === null || cell === undefined
+                    ? ""
+                    : typeof cell === "object"
+                      ? JSON.stringify(cell)
+                      : String(cell);
+
+                if (index === 4) {
+                  td.dataset.code = String(cell ?? "");
+                  td.style.color = "blue";
+                  td.style.textDecoration = "underline";
+                  td.style.cursor = "pointer";
+                }
+              }
+              tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+          }
+        }
+      }
+
+      function showDay(id, name) {
+        const validDay = days.find((day) => day.id === id && day.name === name);
+        if (!validDay) return;
+
+        document
+          .querySelectorAll(".wday")
+          .forEach((div) => div.classList.remove("show"));
+        const target = document.getElementById(validDay.id);
+        if (target) target.classList.add("show");
+
+        document.getElementById("menuBtn").textContent = `${validDay.name} ▼`;
+        try {
+          localStorage.setItem(
+            DAY_STORAGE_KEY,
+            JSON.stringify({
+              id: validDay.id,
+              name: validDay.name,
+            }),
+          );
+        } catch (error) {
+          // La visualizzazione del giorno funziona anche se lo storage è disabilitato.
+        }
+        document.getElementById("dayMenu").classList.remove("show");
+      }
+
+      function addModalParagraph(container, text, className) {
+        const p = document.createElement("p");
+        if (className) p.className = className;
+        p.textContent = String(text ?? "");
+        container.appendChild(p);
+      }
+
+      function showTargetInfo(code) {
+        const info = zielbild.get(code);
+        if (!info) return;
+
+        const modalText = document.getElementById("modalText");
+        modalText.replaceChildren();
+        addModalParagraph(modalText, `(${code}) ${info.be1}`, "code-title");
+        addModalParagraph(modalText, info.be2, "beschreibung-title");
+        addModalParagraph(modalText, info.be3, "");
+        addModalParagraph(modalText, info.be4, "beschreibung-title");
+        document.getElementById("codeModal").style.display = "block";
+      }
+
+      async function importJsonFile(file) {
+        if (!file) return;
+        if (file.size > MAX_JSON_SIZE) {
+          alert("Die JSON-Datei ist zu groß. Erlaubt sind maximal 2 MB.");
+          return;
         }
 
-        document.getElementById("optionsMenuButton").addEventListener("click", () => {
-            const dropdown = document.getElementById("optionsDropdown");
-            dropdown.hidden = !dropdown.hidden;
-            document.getElementById("optionsMenuButton").setAttribute("aria-expanded", String(!dropdown.hidden));
+        try {
+          const text = await file.text();
+          const data = JSON.parse(text);
+          validateData(data);
+
+          // Zuerst werden die validierten Daten angezeigt und anschließend lokal gespeichert.
+          renderData(data);
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          } catch (storageError) {
+            //alert("Die Daten wurden geladen, konnten aber nicht dauerhaft im Browser gespeichert werden. Prüfe den verfügbaren Speicher.");
+            return;
+          }
+          //alert("JSON-Datei geladen und lokal im Browser gespeichert.");
+        } catch (error) {
+          console.error("JSON-Import fehlgeschlagen:", error);
+          alert(
+            "Prüfe, ob es eine gültige NPK-JSON-Datei ist.\n\n" +
+              String(error.message ?? ""),
+          );
+        }
+      }
+
+      document
+        .getElementById("optionsMenuButton")
+        .addEventListener("click", () => {
+          const dropdown = document.getElementById("optionsDropdown");
+          dropdown.hidden = !dropdown.hidden;
+          document
+            .getElementById("optionsMenuButton")
+            .setAttribute("aria-expanded", String(!dropdown.hidden));
         });
 
-        document.getElementById("openJsonButton").addEventListener("click", () => {
-            document.getElementById("optionsDropdown").hidden = true;
-            document.getElementById("optionsMenuButton").setAttribute("aria-expanded", "false");
-            document.getElementById("dateiAuswahl").click();
+      document
+        .getElementById("openJsonButton")
+        .addEventListener("click", () => {
+          document.getElementById("optionsDropdown").hidden = true;
+          document
+            .getElementById("optionsMenuButton")
+            .setAttribute("aria-expanded", "false");
+          document.getElementById("dateiAuswahl").click();
         });
 
-        document.getElementById("dateiAuswahl").addEventListener("change", async event => {
-            const file = event.target.files?.[0];
-            await importJsonFile(file);
-            event.target.value = "";
+      document
+        .getElementById("dateiAuswahl")
+        .addEventListener("change", async (event) => {
+          const file = event.target.files?.[0];
+          await importJsonFile(file);
+          event.target.value = "";
         });
 
-        const menuButton = document.getElementById("menuBtn");
-        const dayMenu = document.getElementById("dayMenu");
+      const menuButton = document.getElementById("menuBtn");
+      const dayMenu = document.getElementById("dayMenu");
 
-        menuButton.addEventListener("click", () => dayMenu.classList.toggle("show"));
+      menuButton.addEventListener("click", () =>
+        dayMenu.classList.toggle("show"),
+      );
 
-        dayMenu.querySelectorAll(".day").forEach(item => {
-            item.addEventListener("click", () => showDay(item.dataset.id, item.dataset.day));
-        });
+      dayMenu.querySelectorAll(".day").forEach((item) => {
+        item.addEventListener("click", () =>
+          showDay(item.dataset.id, item.dataset.day),
+        );
+      });
 
-        document.addEventListener("click", event => {
-            if (!dayMenu.contains(event.target) && !menuButton.contains(event.target)) {
-                dayMenu.classList.remove("show");
-            }
-            const options = document.getElementById("optionsDropdown");
-            const optionsContainer = document.querySelector(".options-menu-container");
-            if (!optionsContainer.contains(event.target)) {
-                options.hidden = true;
-                document.getElementById("optionsMenuButton").setAttribute("aria-expanded", "false");
-            }
-        });
+      document.addEventListener("click", (event) => {
+        if (
+          !dayMenu.contains(event.target) &&
+          !menuButton.contains(event.target)
+        ) {
+          dayMenu.classList.remove("show");
+        }
+        const options = document.getElementById("optionsDropdown");
+        const optionsContainer = document.querySelector(
+          ".options-menu-container",
+        );
+        if (!optionsContainer.contains(event.target)) {
+          options.hidden = true;
+          document
+            .getElementById("optionsMenuButton")
+            .setAttribute("aria-expanded", "false");
+        }
+      });
 
-        document.addEventListener("click", event => {
-            const cell = event.target.closest("td[data-code]");
-            if (cell) showTargetInfo(cell.dataset.code);
-        });
+      document.addEventListener("click", (event) => {
+        const cell = event.target.closest("td[data-code]");
+        if (cell) showTargetInfo(cell.dataset.code);
+      });
 
-        document.getElementById("closeModal").addEventListener("click", () => {
+      document.getElementById("closeModal").addEventListener("click", () => {
+        document.getElementById("codeModal").style.display = "none";
+      });
+
+      document
+        .getElementById("codeModal")
+        .addEventListener("click", (event) => {
+          if (event.target.id === "codeModal") {
             document.getElementById("codeModal").style.display = "none";
+          }
         });
 
-        document.getElementById("codeModal").addEventListener("click", event => {
-            if (event.target.id === "codeModal") {
-                document.getElementById("codeModal").style.display = "none";
-            }
-        });
+      document.getElementById("lockBtn").addEventListener("click", () => {
+        document.body.classList.toggle("locked");
+        document.getElementById("scroll-area").classList.toggle("locked");
+      });
 
-        document.getElementById("lockBtn").addEventListener("click", () => {
-            document.body.classList.toggle("locked");
-            document.getElementById("scroll-area").classList.toggle("locked");
-        });
+      window.addEventListener("DOMContentLoaded", () => {
+        // Ripristina i dati dell'utente dal browser, senza richiedere un JSON al server.
+        let savedData = null;
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) savedData = JSON.parse(saved);
+        } catch (error) {
+          console.error(
+            "Gespeicherte NPK-Daten konnten nicht gelesen werden:",
+            error,
+          );
+        }
 
-        window.addEventListener("DOMContentLoaded", () => {
-            // Ripristina i dati dell'utente dal browser, senza richiedere un JSON al server.
-            let savedData = null;
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) savedData = JSON.parse(saved);
-            } catch (error) {
-                console.error("Gespeicherte NPK-Daten konnten nicht gelesen werden:", error);
-            }
+        if (savedData) {
+          try {
+            renderData(savedData);
+          } catch (error) {
+            console.error("Gespeicherte NPK-Daten sind ungültig:", error);
+            alert(
+              "Die lokal gespeicherten NPK-Daten sind ungültig. Bitte eine gültige JSON-Datei öffnen.",
+            );
+          }
+        }
 
-            if (savedData) {
-                try {
-                    renderData(savedData);
-                } catch (error) {
-                    console.error("Gespeicherte NPK-Daten sind ungültig:", error);
-                    alert("Die lokal gespeicherten NPK-Daten sind ungültig. Bitte eine gültige JSON-Datei öffnen.");
-                }
-            }
+        let selectedDay = null;
+        try {
+          const savedDay = localStorage.getItem(DAY_STORAGE_KEY);
+          if (savedDay) selectedDay = JSON.parse(savedDay);
+        } catch (error) {
+          selectedDay = null;
+        }
 
-            let selectedDay = null;
-            try {
-                const savedDay = localStorage.getItem(DAY_STORAGE_KEY);
-                if (savedDay) selectedDay = JSON.parse(savedDay);
-            } catch (error) {
-                selectedDay = null;
-            }
-
-            if (selectedDay && days.some(day => day.id === selectedDay.id && day.name === selectedDay.name)) {
-                showDay(selectedDay.id, selectedDay.name);
-            } else {
-                showDay(days[new Date().getDay()].id, days[new Date().getDay()].name);
-            }
-        });
+        if (
+          selectedDay &&
+          days.some(
+            (day) => day.id === selectedDay.id && day.name === selectedDay.name,
+          )
+        ) {
+          showDay(selectedDay.id, selectedDay.name);
+        } else {
+          showDay(days[new Date().getDay()].id, days[new Date().getDay()].name);
+        }
+      });
     </script>
-</body>
+  </body>
 </html>

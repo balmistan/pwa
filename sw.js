@@ -2,7 +2,6 @@
 const CACHE_NAME = "npk-cache-v1";
 
 const FILES_TO_CACHE = [
-  "./NPK.html",
   "./npk-icons/manifest.webmanifest",
   "./npk-icons/icon-192.png",
   "./npk-icons/icon-512.png",
