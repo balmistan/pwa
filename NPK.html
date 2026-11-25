@@ -523,7 +523,7 @@
       const DAY_STORAGE_KEY = "selectedDay";
       const MAX_JSON_SIZE = 2 * 1024 * 1024;
 
-      let schichten = {};
+
       let montagtabelle = [];
       let dienstagtabelle = [];
       let mittwochtabelle = [];
@@ -553,11 +553,6 @@
         if (!isPlainObject(data)) {
           throw new Error("Die oberste JSON-Ebene muss ein Objekt sein.");
         }
-        if (!isPlainObject(data.schichten)) {
-          throw new Error(
-            'Im JSON fehlt das erforderliche Objekt "schichten".',
-          );
-        }
         if (!Array.isArray(data.montagtabelle)) {
           throw new Error(
             'Im JSON fehlt das erforderliche Array "montagtabelle".',
@@ -572,11 +567,7 @@
           if (!Array.isArray(tables)) {
             throw new Error(`"${property}" muss ein Array sein.`);
           }
-          if (tables.length && !Array.isArray(data.schichten[dayName])) {
-            throw new Error(
-              `Für ${dayName} fehlt das Schichten-Array in "schichten".`,
-            );
-          }
+         
           for (const table of tables) {
             if (!Array.isArray(table)) {
               throw new Error(`Eine Tabelle in "${property}" ist kein Array.`);
@@ -612,7 +603,6 @@
         const data = validateData(rawData);
 
         // Dati assegnati solo dopo la validazione.
-        schichten = data.schichten;
         montagtabelle = data.montagtabelle;
         dienstagtabelle = data.dienstagtabelle ?? [];
         mittwochtabelle = data.mittwochtabelle ?? [];
@@ -644,7 +634,7 @@
       }
 
       function createTable(dataContent, weekday, weekdayId) {
-        const shiftList = schichten?.[weekday] ?? [];
+      
         if (!Array.isArray(dataContent)) return;
 
         for (
@@ -652,9 +642,8 @@
           tableIndex < dataContent.length;
           tableIndex++
         ) {
-          const shiftLabel = document.createElement("span");
-         shiftLabel.textContent = String(dataContent?.[tableIndex]?.[0]?.[0] ?? "").substring(String(dataContent?.[tableIndex]?.[0]?.[0] ?? "").indexOf(":") + 1).trim();
-
+          const shiftLabel = document.createElement("span");   
+          shiftLabel.textContent = dataContent[tableIndex][0][0].substring(dataContent[tableIndex][0][0].indexOf(":") + 1).trim();
           const wrapper = document.createElement("div");
           wrapper.className = "table-wrapper";
           wrapper.appendChild(shiftLabel);
